@@ -31,10 +31,12 @@ const isDataImageSrc = (src: ImageSrc): src is DataImageSrc => {
 const isDataUri = (imageSrc: ImageSrc): imageSrc is Base64ImageSrc =>
   'uri' in imageSrc && imageSrc.uri.startsWith('data:');
 
-// Windows drive-letter paths (C:\foo, c:/foo) parse as a URL whose protocol
-// is "c:", so they must be recognised before the URL handling below rejects
-// them as non-local.
-const isWindowsAbsolutePath = (src: string) => /^[a-zA-Z]:[\\/]/.test(src);
+// Windows drive-letter paths (C:\foo, c:/foo) parse as a URL whose protocol is
+// "c:", so they must be recognised before the URL handling below rejects them
+// as non-local. Gated on the platform: on POSIX "c:/foo" is not an absolute
+// path but an ordinary relative filename, and must keep falling through.
+const isWindowsAbsolutePath = (src: string) =>
+  path.sep === '\\' && /^[a-zA-Z]:[\\/]/.test(src);
 
 const getAbsoluteLocalPath = (src: string) => {
   if (BROWSER) {
