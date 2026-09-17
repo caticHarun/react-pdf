@@ -36,11 +36,12 @@ The library works as a pipeline: React components → reconciler → layout → 
   │     ├── @react-pdf/image       → PNG/JPEG image fetching and parsing
   │     └── @react-pdf/font        → Font loading, registration, emoji support
   ├── @react-pdf/render        → Renders resolved layout tree to PDF drawing operations
-  │     └── @react-pdf/pdfkit      → Low-level PDF generation (fork of pdfkit)
+  │     ├── pdfkit                 → Low-level PDF generation
+  │     └── @react-pdf/svgkit      → (consumer-supplied ctx) renders the same tree to SVG strings
   └── @react-pdf/primitives    → Shared component type constants
 ```
 
-Utility packages: `@react-pdf/fns` (helpers), `@react-pdf/types` (TypeScript types), `@react-pdf/math` (math utils), `@react-pdf/png-js` (PNG decoder), `@react-pdf/svgkit` (SVG support).
+Utility packages: `@react-pdf/fns` (helpers), `@react-pdf/types` (TypeScript types), `@react-pdf/math` (math utils), `@react-pdf/svgkit` (SVG support).
 
 ### Build
 
@@ -61,7 +62,7 @@ When making changes, always include tests. Add tests in the same location where 
 ### Code Style
 
 - ESLint 9 with TypeScript parser, Prettier (single quotes), enforced via Husky pre-commit hooks
-- Packages `pdfkit`, `png-js`, `yoga`, and `examples` are excluded from linting
+- Packages `yoga` and everything under `apps` are excluded from linting
 
 ## Previewing PDFs
 
@@ -93,6 +94,7 @@ for i, page in enumerate(doc):
 ## Versioning & Release
 
 Uses [Changesets](https://github.com/changesets/changesets) for versioning:
+
 ```bash
 yarn changeset          # Create a changeset
 yarn version-packages   # Apply changesets to bump versions

@@ -31,8 +31,9 @@ const isDataImageSrc = (src: ImageSrc): src is DataImageSrc => {
 const isDataUri = (imageSrc: ImageSrc): imageSrc is Base64ImageSrc =>
   'uri' in imageSrc && imageSrc.uri.startsWith('data:');
 
-// Windows drive-letter paths (C:\foo, c:/foo) would otherwise be parsed by
-// url.parse as having the protocol "c:" and rejected as non-local.
+// Windows drive-letter paths (C:\foo, c:/foo) parse as a URL whose protocol
+// is "c:", so they must be recognised before the URL handling below rejects
+// them as non-local.
 const isWindowsAbsolutePath = (src: string) => /^[a-zA-Z]:[\\/]/.test(src);
 
 const getAbsoluteLocalPath = (src: string) => {
@@ -42,22 +43,30 @@ const getAbsoluteLocalPath = (src: string) => {
 
   if (isWindowsAbsolutePath(src)) return path.resolve(src);
 
-  const {
-    protocol,
-    auth,
-    host,
-    port,
-    hostname,
-    path: pathname,
-  } = url.parse(src);
+  try {
+    const parsed = new URL(src);
 
-  const absolutePath = pathname ? path.resolve(src) : undefined;
+    if (
+      parsed.protocol !== 'file:' ||
+      parsed.username ||
+      parsed.password ||
+      parsed.host
+    ) {
+      return undefined;
+    }
 
-  if ((protocol && protocol !== 'file:') || auth || host || port || hostname) {
-    return undefined;
+    return url.fileURLToPath(parsed.href);
+  } catch {
+    if (!src) {
+      return undefined;
+    }
+
+    if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(src)) {
+      return undefined;
+    }
+
+    return path.resolve(src);
   }
-
-  return absolutePath;
 };
 
 const fetchLocalFile = (src: LocalImageSrc): Promise<Buffer> =>
