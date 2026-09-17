@@ -31,10 +31,16 @@ const isDataImageSrc = (src: ImageSrc): src is DataImageSrc => {
 const isDataUri = (imageSrc: ImageSrc): imageSrc is Base64ImageSrc =>
   'uri' in imageSrc && imageSrc.uri.startsWith('data:');
 
+// Windows drive-letter paths (C:\foo, c:/foo) would otherwise be parsed by
+// url.parse as having the protocol "c:" and rejected as non-local.
+const isWindowsAbsolutePath = (src: string) => /^[a-zA-Z]:[\\/]/.test(src);
+
 const getAbsoluteLocalPath = (src: string) => {
   if (BROWSER) {
     throw new Error('Cannot check local paths in client-side environment');
   }
+
+  if (isWindowsAbsolutePath(src)) return path.resolve(src);
 
   const {
     protocol,
