@@ -1098,4 +1098,103 @@ describe('node shouldBreak', () => {
     // endOfPresence = 600 + 200 + 0 + 300 = 1100 > 1000
     expect(result).toEqual(true);
   });
+
+  test('should not break for breakWhenNeeded when the overflow is below the safety threshold', () => {
+    // 20 + 40.0005 = 60.0005 against a height of 60: resolvePagination
+    // tolerates this, so moving the node to the next page would be wrong.
+    const result = shouldBreak(
+      {
+        type: 'VIEW',
+        props: { wrap: true, breakWhenNeeded: true },
+        style: {},
+        children: [],
+        box: {
+          top: 20,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          height: 40.0005,
+          width: 5,
+          marginTop: 0,
+          marginBottom: 0,
+        },
+      },
+      [],
+      60,
+      [
+        {
+          type: 'VIEW',
+          props: {},
+          style: {},
+          children: [],
+          box: {
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            height: 20,
+            width: 5,
+          },
+        },
+      ],
+    );
+
+    expect(result).toEqual(false);
+  });
+
+  test('should break for breakWhenNeeded on a first child when content sits above its container', () => {
+    // No previous siblings inside the container, but contentAbove is true,
+    // so the node still gains a full page by moving.
+    const result = shouldBreak(
+      {
+        type: 'VIEW',
+        props: { wrap: true, breakWhenNeeded: true },
+        style: {},
+        children: [],
+        box: {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          height: 90,
+          width: 5,
+          marginTop: 0,
+          marginBottom: 0,
+        },
+      },
+      [],
+      40,
+      [],
+      true,
+    );
+
+    expect(result).toEqual(true);
+  });
+
+  test('should not break for breakWhenNeeded when nothing sits above the node', () => {
+    const result = shouldBreak(
+      {
+        type: 'VIEW',
+        props: { wrap: true, breakWhenNeeded: true },
+        style: {},
+        children: [],
+        box: {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          height: 90,
+          width: 5,
+          marginTop: 0,
+          marginBottom: 0,
+        },
+      },
+      [],
+      40,
+      [],
+      false,
+    );
+
+    expect(result).toEqual(false);
+  });
 });
