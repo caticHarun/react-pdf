@@ -119,8 +119,18 @@ const splitNodes = (
 
       // All children are moved to the next page, it doesn't make sense to show the parent on the current page
       if (child.children.length > 0 && currentChild.children.length === 0) {
-        // But if the current page is empty then we can just include the parent on the current page
-        if (currentChildren.length === 0) {
+        // But if the current PAGE is empty then we can just include the parent
+        // on the current page: something taller than a whole sheet has to start
+        // somewhere, and moving it again would never end.
+        //
+        // The page, not this list. splitNodes() recurses into every container,
+        // and one level down `currentChildren` only says whether anything of
+        // THAT container was kept - it is empty for the first child of every
+        // group. Read on its own it claimed an empty page while a table was
+        // sitting above, so a totals box with 8pt of room left kept all of its
+        // 158pt and ran off the sheet. contentAbove is what actually answers
+        // the question, and splitNodes() already carries it down.
+        if (currentChildren.length === 0 && !contentAbove) {
           currentChildren.push(child, ...futureFixedNodes);
           nextChildren.push(...futureNodes);
         } else {
